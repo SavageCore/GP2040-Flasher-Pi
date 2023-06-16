@@ -30,3 +30,10 @@ This guide assumes you're running a Raspberry Pi (< 4) with PiTFT and have follo
 Also included is a script to create a systemd service to start the flasher on boot. To use it, run `./create-systemd-service.sh` and it will start on next boot. To stop it from starting on boot, run `sudo systemctl disable gp2040-flasher`. If you want to start it manually, run `sudo systemctl start gp2040-flasher`.
 
 You can double press the bottom button to exit the program. Note if you installed the systemd service, it will restart the program.
+
+## Offline Usage
+
+1. Download the latest releases from the [releases page](https://github.com/OpenStickCommunity/GP2040-CE/releases) and place them in the `firmware` directory.
+2. Start the app with `sudo python3 main.py --offline`.
+
+The app will also fail gracefully if you're API rate limited or any other connection issue to GitHub and fallback to offline mode.

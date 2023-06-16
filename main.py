@@ -1,12 +1,14 @@
 import pygame
 import pyudev
 import os
+import sys
 from splash_screen import SplashScreen
 from button import Button
 from picotool import Picotool
 from github import Github
 from state_manager import StateManager
 
+offline_mode = False
 # Hide pygame message
 os.putenv('PYGAME_HIDE_SUPPORT_PROMPT', '1')
 # Output to PiTFT screen
@@ -16,8 +18,16 @@ os.putenv('SDL_FBDEV', '/dev/fb1')
 state_manager = StateManager()
 selected_firmware = state_manager.get_value("selected_firmware") or 0
 
-github = Github()
-version, release_date, firmware_files = github.get_latest_release_info()
+# If argument --offline is passed, force offline mode
+if len(sys.argv) > 1 and sys.argv[1] == "--offline":
+    offline_mode = True
+    print("Forcing offline mode")
+
+if offline_mode:
+    firmware_files = None
+else:
+    github = Github()
+    version, release_date, firmware_files = github.get_latest_release_info()
 
 # Initialise the pygame library
 pygame.init()
@@ -29,7 +39,23 @@ pygame.display.update()
 # If no firmware files are found, exit
 if firmware_files is None:  # None is returned if the API request fails
     print("Error looking up GitHub releases")
-    exit()
+    print("Assuming no internet connection")
+    offline_mode = True
+    # We're offline, recreate the firmware_files dictionary from files in the firmware directory, skipping flash_nuke.uf2
+
+    selected_firmware = 0
+    firmware_files = {}
+    for file in os.listdir("firmware"):
+        if file.endswith(".uf2") and not file == "flash_nuke.uf2":
+            firmware_files[len(firmware_files)] = {
+                "name": os.path.join('firmware', file)
+            }
+
+    # If no firmware files are found, exit
+    if len(firmware_files) == 0:
+        print("No firmware files found")
+        exit()
+
 
 
 def clear_screen(screen):
@@ -62,14 +88,18 @@ def render_text(screen, text, font, color, padding=5):
 def flash_drive_handler(action, device):
     global selected_firmware
     global splash
+    global offline_mode
 
     device_name = device.sys_name.split('/')[-1]
     if action == 'add' and device_name == "sda" and device.get('ID_VENDOR') == 'RPI' and device.get('ID_MODEL') == 'RP2':
         picotool = Picotool()
         splash.set_text("Pico detected")
 
-        download_url = firmware_files[selected_firmware]["browser_download_url"]
-        firmware_file = github.download_file(download_url)
+        if offline_mode:
+            firmware_file = firmware_files[selected_firmware]["name"]
+        else:
+            download_url = firmware_files[selected_firmware]["browser_download_url"]
+            firmware_file = github.download_file(download_url)
 
         # If the firmware file is downloaded successfully, flash it to the Pico
         if firmware_file is not None:

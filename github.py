@@ -1,6 +1,5 @@
 import requests
 import urllib.request
-import tempfile
 import os
 
 
@@ -12,8 +11,11 @@ class Github:
 
     def get_latest_release_info(self):
         url = f"https://api.github.com/repos/{self.owner}/{self.repo}/releases"
-        response = requests.get(url)
-        if response.status_code == 200:
+
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Raise exception for non-2xx status codes
+
             releases = response.json()
             for release in releases:
                 if not release.get("prerelease"):
@@ -25,11 +27,10 @@ class Github:
                         asset for asset in assets if asset["name"] != "flash_nuke.uf2"]
 
                     return version, release_date, assets
-        else:
-            # Handle API request error
-            print("Error:", response.status_code)
+        except requests.exceptions.RequestException as e:
+            print("Failed to fetch release info:", e)
 
-            return None, None, None
+        return None, None, None
 
     def download_file(self, url):
         # Extract the filename from the URL

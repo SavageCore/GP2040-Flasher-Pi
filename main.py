@@ -9,6 +9,7 @@ from github import Github
 from state_manager import StateManager
 
 offline_mode = False
+firmware_files = {}
 # Hide pygame message
 os.putenv('PYGAME_HIDE_SUPPORT_PROMPT', '1')
 # Output to PiTFT screen
@@ -18,50 +19,9 @@ os.putenv('SDL_FBDEV', '/dev/fb1')
 state_manager = StateManager()
 selected_firmware = state_manager.get_value("selected_firmware") or 0
 
-# If argument --offline is passed, force offline mode
-if len(sys.argv) > 1 and sys.argv[1] == "--offline":
-    offline_mode = True
-    print("Forcing offline mode")
-
-if offline_mode:
-    firmware_files = None
-else:
-    github = Github()
-    version, release_date, firmware_files = github.get_latest_release_info()
-
-# Initialise the pygame library
-pygame.init()
-pygame.mouse.set_visible(False)
-screen = pygame.display.set_mode((320, 240), 0, 16)
-screen.fill((0, 0, 0))
-pygame.display.update()
-
-# If no firmware files are found, exit
-if firmware_files is None:  # None is returned if the API request fails
-    print("Error looking up GitHub releases")
-    print("Assuming no internet connection")
-    offline_mode = True
-    # We're offline, recreate the firmware_files dictionary from files in the firmware directory, skipping flash_nuke.uf2
-
-    selected_firmware = 0
-    firmware_files = {}
-    for file in os.listdir("firmware"):
-        if file.endswith(".uf2") and not file == "flash_nuke.uf2":
-            firmware_files[len(firmware_files)] = {
-                "name": os.path.join('firmware', file)
-            }
-
-    # If no firmware files are found, exit
-    if len(firmware_files) == 0:
-        print("No firmware files found")
-        exit()
-
-
-
 def clear_screen(screen):
     screen.fill((0, 0, 0))
     pygame.display.update()
-
 
 def render_text(screen, text, font, color, padding=5):
     # Calculate the maximum font size that fits within the screen dimensions
@@ -84,11 +44,11 @@ def render_text(screen, text, font, color, padding=5):
     screen.blit(text_surface, text_rect)
     pygame.display.update()
 
-
 def flash_drive_handler(action, device):
     global selected_firmware
     global splash
     global offline_mode
+    global firmware_files
 
     device_name = device.sys_name.split('/')[-1]
     if action == 'add' and device_name == "sda" and device.get('ID_VENDOR') == 'RPI' and device.get('ID_MODEL') == 'RP2':
@@ -131,7 +91,13 @@ def flash_drive_handler(action, device):
                     render_text(screen, "Error flashing firmware",
                                 pygame.font.Font(None, 100), (255, 255, 255))
         else:
-            print("Error downloading firmware file")
+            splash.set_text("We appear to be offline. Returning to start in offline mode")
+            pygame.time.wait(3000)
+            selected_firmware = 0
+            offline_mode = True
+            splash.set_text("Select firmware to flash")
+
+            firmware_files = get_local_firmware_files()
 
 def get_info_from_firmware_file(firmware_file):
     # Example names:
@@ -152,10 +118,29 @@ def get_info_from_firmware_file(firmware_file):
 
     return version, name
 
+def get_local_firmware_files():
+    global selected_firmware
+
+    selected_firmware = 0
+    firmware_files = {}
+    for file in os.listdir("firmware"):
+        if file.endswith(".uf2") and not file == "flash_nuke.uf2":
+            firmware_files[len(firmware_files)] = {
+                "name": os.path.join('firmware', file)
+            }
+
+    # If no firmware files are found, exit
+    if len(firmware_files) == 0:
+        print("No firmware files found")
+        exit()
+
+    return firmware_files
+
 def main():
     global selected_firmware
     global splash
     global screen
+    global firmware_files
 
     splash.show()
 
@@ -213,6 +198,24 @@ def main():
 
 
 if __name__ == '__main__':
+    # If argument --offline is passed, force offline mode
+    if len(sys.argv) > 1 and sys.argv[1] == "--offline":
+        offline_mode = True
+        print("Forcing offline mode")
+
+    if offline_mode:
+        firmware_files = None
+    else:
+        github = Github()
+        version, release_date, firmware_files = github.get_latest_release_info()
+
+    # Initialise the pygame library
+    pygame.init()
+    pygame.mouse.set_visible(False)
+    screen = pygame.display.set_mode((320, 240), 0, 16)
+    screen.fill((0, 0, 0))
+    pygame.display.update()
+
     initial_text = "Select firmware to flash"
     if selected_firmware is not 0:
         version, name = get_info_from_firmware_file(firmware_files[selected_firmware]["name"])
@@ -220,5 +223,13 @@ if __name__ == '__main__':
 
     splash = SplashScreen(
         screen, 'assets/images/gp2040-ce-logo-inside-no-background.png', (0, 0, 0), initial_text)
+
+    # If no firmware files are found, exit
+    if firmware_files is None:  # None is returned if the API request fails
+        print("Error looking up GitHub releases")
+        print("Assuming no internet connection")
+        offline_mode = True
+        # We're offline, recreate the firmware_files dictionary from files in the firmware directory, skipping flash_nuke.uf2
+        firmware_files = get_local_firmware_files()
 
     main()

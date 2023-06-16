@@ -11,6 +11,10 @@ class SplashScreen(object):
         self.padding_bottom = padding_bottom
         self.padding_left = padding_left
         self.padding_right = padding_right
+        self.up_arrow_image = pygame.transform.scale(pygame.image.load(
+            "assets/icons/chevron-up-outline.png").convert_alpha(), (16, 16))
+        self.down_arrow_image = pygame.transform.scale(pygame.image.load(
+            "assets/icons/chevron-down-outline.png").convert_alpha(), (16, 16))
 
     # Display the splash screen
     def show(self):
@@ -72,6 +76,16 @@ class SplashScreen(object):
 
             # Blit the text onto the screen
             self.screen.blit(text_surface, (text_x, text_y))
+
+            # Calculate the position to blit the arrow images
+            arrow_x = screen_width - self.padding_right - self.padding_right
+            arrow__up_y = 35
+            arrow__down_y = arrow__up_y + self.up_arrow_image.get_height() + 10
+
+            # Blit the arrow images onto the screen
+            self.screen.blit(self.up_arrow_image, (arrow_x, arrow__up_y))
+            self.screen.blit(self.down_arrow_image,
+                             (arrow_x, arrow__down_y + self.up_arrow_image.get_height()))
 
             pygame.display.update()
 

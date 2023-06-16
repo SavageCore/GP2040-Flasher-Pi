@@ -6,8 +6,7 @@ Quick screencast of it in action:
 
 https://github.com/SavageCore/GP2040-Flasher-Pi/assets/171312/424dc74c-3bee-4f4f-bb7d-0d4fcac6b63b
 
-![PXL_20230616_003118005](https://github.com/SavageCore/GP2040-Flasher-Pi/assets/171312/c4d1ca1c-7698-4c9f-a170-003628e8d6bc)
-
+![preview](https://github.com/SavageCore/GP2040-Flasher-Pi/assets/171312/a6ad30d2-7c63-45f1-befd-484f340fff22)
 
 
 ## Installation

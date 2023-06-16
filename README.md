@@ -15,7 +15,7 @@ https://github.com/SavageCore/GP2040-Flasher-Pi/assets/171312/e2cf80e8-1bbe-48b9
 This guide assumes you're running a Raspberry Pi (< 4) with PiTFT and have followed the [Easy Install](https://learn.adafruit.com/adafruit-pitft-28-inch-resistive-touchscreen-display-raspberry-pi/easy-install-2) guide making sure to setup as a [Raw Framebuffer Device](https://learn.adafruit.com/adafruit-pitft-28-inch-resistive-touchscreen-display-raspberry-pi/easy-install-2#pitft-as-raw-framebuffer-device-2982165).
 
 1. Follow the instructions to install [picotool](https://github.com/raspberrypi/picotool).
-2. Install SDL2 Dev libraries for your operating system.
+2. Install SDL 1.2 Dev libraries for your operating system. [[More information](https://learn.adafruit.com/adafruit-pitft-28-inch-resistive-touchscreen-display-raspberry-pi/pitft-pygame-tips#ensure-you-are-running-sdl-1-dot-2-2859156)]
 2. Clone this repository.
 3. Run `pip install -r requirements.txt` to install the required Python packages.
 

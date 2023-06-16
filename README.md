@@ -4,7 +4,8 @@
 
 Quick screencast of it in action:
 
-https://github.com/SavageCore/GP2040-Flasher-Pi/assets/171312/424dc74c-3bee-4f4f-bb7d-0d4fcac6b63b
+https://github.com/SavageCore/GP2040-Flasher-Pi/assets/171312/e2cf80e8-1bbe-48b9-80b8-60431aac8154
+
 
 ![preview](https://github.com/SavageCore/GP2040-Flasher-Pi/assets/171312/a6ad30d2-7c63-45f1-befd-484f340fff22)
 
